@@ -1,0 +1,49 @@
+{
+    "name": "dadajuice/zephyrus-leaf",
+    "description": "Static site generator core for Zephyrus. Build, SEO, content parsing, multi-locale support.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "David Tucker",
+            "email": "david.tucker@ophelios.com"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../zephyrus2"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": "^8.4",
+        "zephyrus-framework/core": "@dev",
+        "league/commonmark": "^2.8",
+        "league/config": "^1.2",
+        "ext-intl": "*",
+        "ext-mbstring": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "symfony/var-dumper": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Leaf\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Leaf\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
+    },
+    "config": {
+        "sort-packages": true,
+        "process-timeout": 0
+    }
+}
