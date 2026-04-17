@@ -39,6 +39,10 @@ final class DevRouter
      */
     public function handle(): bool
     {
+        if (!defined('DEV_SERVER')) {
+            define('DEV_SERVER', true);
+        }
+
         $uri = urldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 
         // Live-reload endpoint.
