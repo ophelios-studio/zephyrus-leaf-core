@@ -1,5 +1,5 @@
 {
-    "name": "dadajuice/zephyrus-leaf",
+    "name": "zephyrus-framework/leaf-core",
     "description": "Static site generator core for Zephyrus. Build, SEO, content parsing, multi-locale support.",
     "type": "library",
     "license": "MIT",
