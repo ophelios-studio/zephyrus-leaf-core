@@ -82,26 +82,31 @@ class BuildCommand
         // Multi-locale configuration.
         $localizationConfig = $this->app->getConfig()->localization;
         $supportedLocales = $localizationConfig->supportedLocales;
+        $defaultLocale = $localizationConfig->locale;
         $isMultiLocale = count($supportedLocales) > 1;
         if ($isMultiLocale) {
-            $builder->setLocales($supportedLocales, $localizationConfig->locale);
+            $builder->setLocales($supportedLocales, $defaultLocale);
             $translationExt = $this->app->getTranslationExtension();
             if ($translationExt !== null) {
                 $builder->setTranslationExtension($translationExt);
             }
+            // Thread the ContentLoader in so per-locale file resolution happens.
+            $builder->setContentLoader($this->app->getContentLoader());
         }
 
-        // Discover doc content paths (section/slug from markdown files).
+        // Discover doc content paths. Single-locale: straight scan of
+        // content/*/* . Multi-locale: compute the set per locale (default +
+        // locale overrides) so a locale-only page doesn't 404 other locales.
         $contentDir = ROOT_DIR . '/' . ltrim($leafConfig->contentPath, '/');
         if (is_dir($contentDir)) {
-            $sections = array_filter(
-                scandir($contentDir),
-                fn($f) => $f !== '.' && $f !== '..' && is_dir($contentDir . '/' . $f),
-            );
-            foreach ($sections as $section) {
-                foreach (glob($contentDir . '/' . $section . '/*.md') as $file) {
-                    $slug = basename($file, '.md');
-                    $builder->addPath("/{$section}/{$slug}");
+            if ($isMultiLocale) {
+                $byLocale = $this->discoverContentPathsByLocale($contentDir, $supportedLocales, $defaultLocale);
+                $builder->setLocaleAdditionalPaths($byLocale);
+            } else {
+                foreach ($this->discoverContentPathsByLocale($contentDir, [], '') as $paths) {
+                    foreach ($paths as $path) {
+                        $builder->addPath($path);
+                    }
                 }
             }
         }
@@ -138,15 +143,33 @@ class BuildCommand
             echo "  -> 404.html created" . PHP_EOL;
         }
 
-        // Generate search index.
+        // Generate search index. For multi-locale sites, produce a per-locale
+        // search.json so each locale's client-side search only matches its
+        // own pages (with English fallback content surfacing where appropriate).
         $searchIndexBuilder = new SearchIndexBuilder(
             $contentDir,
             new MarkdownParser(),
             $leafConfig->baseUrl,
         );
-        $index = $searchIndexBuilder->build();
-        file_put_contents($outputDir . '/search.json', json_encode($index, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
-        echo "  -> " . count($index) . " pages indexed" . PHP_EOL;
+        if ($isMultiLocale) {
+            foreach ($supportedLocales as $locale) {
+                $searchIndexBuilder->setLocale($locale, $defaultLocale, $supportedLocales);
+                $index = $searchIndexBuilder->build();
+                $localeOutputDir = ($locale === $defaultLocale) ? $outputDir : $outputDir . '/' . $locale;
+                if (!is_dir($localeOutputDir)) {
+                    mkdir($localeOutputDir, 0o755, true);
+                }
+                file_put_contents(
+                    $localeOutputDir . '/search.json',
+                    json_encode($index, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
+                );
+                echo "  -> [{$locale}] " . count($index) . " pages indexed" . PHP_EOL;
+            }
+        } else {
+            $index = $searchIndexBuilder->build();
+            file_put_contents($outputDir . '/search.json', json_encode($index, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+            echo "  -> " . count($index) . " pages indexed" . PHP_EOL;
+        }
 
         // Single-locale root redirect to first doc page (docs-only sites).
         // Skipped when the app has a landing route; its rendered HTML already sits at /.
@@ -204,6 +227,67 @@ class BuildCommand
 
         echo PHP_EOL . "Build complete!" . PHP_EOL;
         return 0;
+    }
+
+    /**
+     * Compute the set of `/section/slug` paths each locale should build.
+     *
+     * - The default locale (or a single-locale site) gets every page under
+     *   `content/<section>/<slug>.md` but NOT those that live only in a
+     *   `content/<locale>/` override.
+     * - Non-default locales get the default set PLUS any page added under
+     *   their own `content/<locale>/` tree (including locale-only sections).
+     *
+     * In single-locale mode (empty $supportedLocales), returns a map with a
+     * single empty-string key containing the default paths.
+     *
+     * @param list<string> $supportedLocales
+     * @return array<string, list<string>>
+     */
+    private function discoverContentPathsByLocale(string $contentDir, array $supportedLocales, string $defaultLocale): array
+    {
+        $scan = function (string $root, array $exclude) use (&$scan): array {
+            $found = [];
+            if (!is_dir($root)) {
+                return $found;
+            }
+            foreach (scandir($root) ?: [] as $entry) {
+                if ($entry === '.' || $entry === '..') {
+                    continue;
+                }
+                if (in_array($entry, $exclude, true)) {
+                    continue;
+                }
+                $sectionDir = $root . '/' . $entry;
+                if (!is_dir($sectionDir)) {
+                    continue;
+                }
+                foreach (glob($sectionDir . '/*.md') ?: [] as $file) {
+                    $slug = basename($file, '.md');
+                    $found["/{$entry}/{$slug}"] = true;
+                }
+            }
+            return $found;
+        };
+
+        $defaultPaths = $scan($contentDir, $supportedLocales);
+
+        if ($supportedLocales === []) {
+            return ['' => array_keys($defaultPaths)];
+        }
+
+        $byLocale = [];
+        foreach ($supportedLocales as $locale) {
+            $set = $defaultPaths; // start from default (fallback)
+            if ($locale !== $defaultLocale) {
+                $localePaths = $scan($contentDir . '/' . $locale, []);
+                foreach ($localePaths as $p => $_) {
+                    $set[$p] = true;
+                }
+            }
+            $byLocale[$locale] = array_keys($set);
+        }
+        return $byLocale;
     }
 
     /**

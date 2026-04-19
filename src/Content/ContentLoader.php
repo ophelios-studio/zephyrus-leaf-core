@@ -7,8 +7,24 @@ namespace Leaf\Content;
 use Leaf\Config\LeafConfig;
 
 /**
- * Loads documentation content from markdown files and provides
- * navigation structure (sidebar, prev/next links).
+ * Loads documentation content from markdown files and provides navigation
+ * structure (sidebar, prev/next links).
+ *
+ * Multi-locale content resolution:
+ *
+ *   content/                         <- default-locale content (always read)
+ *     getting-started/intro.md
+ *   content/<locale>/                <- non-default locale overrides
+ *     getting-started/intro.md
+ *
+ * When the loader's currentLocale differs from its defaultLocale, file
+ * lookups first probe `content/<currentLocale>/<section>/<slug>.md` and
+ * fall back to `content/<section>/<slug>.md` when no translation exists.
+ * Sections can be locale-specific too: `content/fr/concepts/` that has no
+ * counterpart at `content/concepts/` appears only in the French sidebar.
+ *
+ * Call setLocale() between builds to switch the resolver; the sidebar and
+ * flat-page cache is invalidated automatically.
  */
 final class ContentLoader
 {
@@ -20,11 +36,38 @@ final class ContentLoader
 
     private bool $loaded = false;
 
+    private string $currentLocale = '';
+    private string $defaultLocale = '';
+    /** @var list<string> */
+    private array $supportedLocales = [];
+
     public function __construct(
         private readonly string $contentDirectory,
         private readonly MarkdownParser $parser,
         private readonly LeafConfig $config,
     ) {
+    }
+
+    /**
+     * Set the locale context for subsequent file lookups and sidebar scans.
+     * Pass the list of supported locales so their dirs under `content/` can
+     * be treated as locale scopes (not regular sections).
+     *
+     * @param list<string> $supportedLocales
+     */
+    public function setLocale(string $currentLocale, string $defaultLocale = '', array $supportedLocales = []): void
+    {
+        $this->currentLocale = $currentLocale;
+        $this->defaultLocale = $defaultLocale;
+        $this->supportedLocales = $supportedLocales;
+        $this->loaded = false;
+        $this->flatPages = [];
+        $this->sidebar = [];
+    }
+
+    public function getCurrentLocale(): string
+    {
+        return $this->currentLocale;
     }
 
     /**
@@ -38,8 +81,8 @@ final class ContentLoader
 
     public function getPage(string $section, string $slug): ?ParsedMarkdown
     {
-        $path = $this->contentDirectory . '/' . $section . '/' . $slug . '.md';
-        if (!is_file($path)) {
+        $path = $this->resolveFilePath($section, $slug);
+        if ($path === null) {
             return null;
         }
 
@@ -111,6 +154,35 @@ final class ContentLoader
         return rtrim($this->config->baseUrl, '/');
     }
 
+    /**
+     * Resolve a section+slug pair to an on-disk file, preferring the current
+     * locale's override when non-default.
+     */
+    private function resolveFilePath(string $section, string $slug): ?string
+    {
+        if ($this->isNonDefaultLocale()) {
+            $localePath = sprintf(
+                '%s/%s/%s/%s.md',
+                $this->contentDirectory,
+                $this->currentLocale,
+                $section,
+                $slug,
+            );
+            if (is_file($localePath)) {
+                return $localePath;
+            }
+        }
+        $defaultPath = $this->contentDirectory . '/' . $section . '/' . $slug . '.md';
+        return is_file($defaultPath) ? $defaultPath : null;
+    }
+
+    private function isNonDefaultLocale(): bool
+    {
+        return $this->currentLocale !== ''
+            && $this->defaultLocale !== ''
+            && $this->currentLocale !== $this->defaultLocale;
+    }
+
     private function ensureLoaded(): void
     {
         if ($this->loaded) {
@@ -125,35 +197,24 @@ final class ContentLoader
             return;
         }
 
+        $sectionFiles = $this->collectSectionFiles();
         $configSections = $this->config->sections;
 
-        // If sections are configured, use that order. Otherwise, scan and sort alphabetically.
+        // Honor configured section order when present; otherwise alphabetical.
         if ($configSections !== []) {
-            $sections = array_keys($configSections);
+            $orderedSections = array_keys($configSections);
         } else {
-            $sections = array_filter(
-                scandir($this->contentDirectory) ?: [],
-                fn ($f) => $f !== '.' && $f !== '..' && is_dir($this->contentDirectory . '/' . $f),
-            );
-            sort($sections);
+            $orderedSections = array_keys($sectionFiles);
+            sort($orderedSections);
         }
 
-        $sectionIndex = 0;
-        foreach ($sections as $section) {
-            $sectionDir = $this->contentDirectory . '/' . $section;
-            if (!is_dir($sectionDir)) {
+        foreach ($orderedSections as $section) {
+            if (!isset($sectionFiles[$section])) {
                 continue;
             }
-
-            $files = glob($sectionDir . '/*.md');
-            if (!$files) {
-                continue;
-            }
-
             $pages = [];
-            foreach ($files as $file) {
-                $slug = basename($file, '.md');
-                $frontMatter = $this->parser->extractFrontMatter(file_get_contents($file));
+            foreach ($sectionFiles[$section] as $slug => $filePath) {
+                $frontMatter = $this->parser->extractFrontMatter(file_get_contents($filePath));
                 $pages[] = [
                     'section' => $section,
                     'slug' => $slug,
@@ -162,11 +223,9 @@ final class ContentLoader
                     'url' => $this->baseUrl() . "/{$section}/{$slug}",
                 ];
             }
-
             usort($pages, fn (array $a, array $b) => $a['order'] <=> $b['order']);
 
             $sectionLabel = $configSections[$section] ?? $this->slugToTitle($section);
-
             $sidebarItems = array_map(fn (array $page) => [
                 'title' => $page['title'],
                 'url' => $page['url'],
@@ -187,11 +246,72 @@ final class ContentLoader
                     'url' => $page['url'],
                 ];
             }
-
-            $sectionIndex++;
         }
 
         $this->loaded = true;
+    }
+
+    /**
+     * Walk both the default content tree and the current locale's tree,
+     * returning the union as section => [slug => absolute file path] where
+     * the locale's file wins on collision.
+     *
+     * @return array<string, array<string, string>>
+     */
+    private function collectSectionFiles(): array
+    {
+        $result = [];
+        $this->scanInto($this->contentDirectory, $result, excludeNames: $this->localeDirNames());
+        if ($this->isNonDefaultLocale()) {
+            $localeDir = $this->contentDirectory . '/' . $this->currentLocale;
+            if (is_dir($localeDir)) {
+                $this->scanInto($localeDir, $result, excludeNames: []);
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Populate $result[$section][$slug] = $filePath by scanning $root.
+     * Entries whose name is in $excludeNames at the top level are skipped.
+     * Later calls overwrite earlier entries for the same section/slug.
+     *
+     * @param array<string, array<string, string>> $result
+     * @param list<string> $excludeNames
+     */
+    private function scanInto(string $root, array &$result, array $excludeNames = []): void
+    {
+        if (!is_dir($root)) {
+            return;
+        }
+        $entries = scandir($root) ?: [];
+        foreach ($entries as $entry) {
+            if ($entry === '.' || $entry === '..') {
+                continue;
+            }
+            if (in_array($entry, $excludeNames, true)) {
+                continue;
+            }
+            $sectionDir = $root . '/' . $entry;
+            if (!is_dir($sectionDir)) {
+                continue;
+            }
+            foreach (glob($sectionDir . '/*.md') ?: [] as $file) {
+                $slug = basename($file, '.md');
+                $result[$entry][$slug] = $file;
+            }
+        }
+    }
+
+    /**
+     * Names under content/ that should be treated as locale scopes rather
+     * than sections (i.e. every supported locale).
+     *
+     * @return list<string>
+     */
+    private function localeDirNames(): array
+    {
+        return $this->supportedLocales;
     }
 
     private function slugToTitle(string $slug): string

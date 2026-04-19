@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Leaf;
 
+use Leaf\Content\ContentLoader;
 use Leaf\Localization\TranslationLatteExtension;
 use Zephyrus\Core\Application;
 use Zephyrus\Http\Request;
@@ -45,6 +46,14 @@ final class StaticSiteBuilder
     private string $defaultLocale = 'en';
 
     private ?TranslationLatteExtension $translationExtension = null;
+
+    private ?ContentLoader $contentLoader = null;
+
+    /** @var array<string, list<string>> locale code => paths to build for that locale */
+    private array $localeAdditionalPaths = [];
+
+    /** @var list<string>|null active override of $additionalPaths during multi-locale iteration */
+    private ?array $activePathsOverride = null;
 
     public function __construct(
         private readonly Application $application,
@@ -110,6 +119,29 @@ final class StaticSiteBuilder
     public function setTranslationExtension(TranslationLatteExtension $extension): void
     {
         $this->translationExtension = $extension;
+    }
+
+    /**
+     * Provide the ContentLoader so multi-locale builds can switch the
+     * loader's current locale between iterations. Without this, non-default
+     * locales would render the same files as the default (no per-locale
+     * content resolution).
+     */
+    public function setContentLoader(ContentLoader $loader): void
+    {
+        $this->contentLoader = $loader;
+    }
+
+    /**
+     * For multi-locale sites: the exact set of content paths to render per
+     * locale. Each locale only builds its own set (plus auto-discovered
+     * routes), so a French-only page doesn't 404 the English build.
+     *
+     * @param array<string, list<string>> $byLocale
+     */
+    public function setLocaleAdditionalPaths(array $byLocale): void
+    {
+        $this->localeAdditionalPaths = $byLocale;
     }
 
     public function build(): StaticBuildResult
@@ -200,11 +232,23 @@ final class StaticSiteBuilder
             if ($this->translationExtension !== null) {
                 $this->translationExtension->setCurrentLocale($locale);
             }
+            if ($this->contentLoader !== null) {
+                $this->contentLoader->setLocale($locale, $this->defaultLocale, $this->locales);
+            }
+
+            // Scope this iteration's additional paths to the locale's own set
+            // so a locale-only page doesn't 404 the other locales' builds.
+            if (isset($this->localeAdditionalPaths[$locale])) {
+                $this->activePathsOverride = $this->localeAdditionalPaths[$locale];
+            } else {
+                $this->activePathsOverride = null;
+            }
 
             $localeOutputDir = ($locale === $this->defaultLocale)
                 ? $this->outputDirectory
                 : $this->outputDirectory . '/' . $locale;
             $result = $this->buildSingleLocale($localeOutputDir);
+            $this->activePathsOverride = null;
 
             $totalPages += $result->pagesBuilt;
             $totalPaths += $result->totalPaths;
@@ -251,7 +295,8 @@ final class StaticSiteBuilder
             $paths[] = $route->path;
         }
 
-        $paths = array_merge($paths, $this->additionalPaths);
+        $additional = $this->activePathsOverride ?? $this->additionalPaths;
+        $paths = array_merge($paths, $additional);
         $paths = array_values(array_unique($paths));
 
         if ($this->excludePatterns !== []) {
