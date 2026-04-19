@@ -148,6 +148,17 @@ final class StaticSiteBuilder
                 $response = $this->application->handle($request);
 
                 if ($response->status >= 300 && $response->status < 400) {
+                    // Serialize the redirect as a meta-refresh HTML page so the
+                    // static output still functions when deployed. Without this
+                    // the file never gets written and visitors see a 404.
+                    $location = $response->headers['Location'] ?? $response->headers['location'] ?? null;
+                    if ($location === null || $location === '') {
+                        $errors[] = sprintf('%s returned redirect without Location header', $path);
+                        continue;
+                    }
+                    $this->writePage($path, $this->renderMetaRefresh($location));
+                    $builtPages[] = $path;
+                    $pagesBuilt++;
                     continue;
                 }
 
@@ -256,6 +267,31 @@ final class StaticSiteBuilder
 
         sort($paths);
         return $paths;
+    }
+
+    private function renderMetaRefresh(string $location): string
+    {
+        $escaped = htmlspecialchars($location, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        return <<<HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="refresh" content="0; url={$escaped}">
+<link rel="canonical" href="{$escaped}">
+<title>Redirecting...</title>
+</head>
+<body>
+<p>Redirecting to <a href="{$escaped}">{$escaped}</a>...</p>
+<script>location.replace({$this->jsEscape($location)});</script>
+</body>
+</html>
+HTML;
+    }
+
+    private function jsEscape(string $value): string
+    {
+        return json_encode($value, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
     }
 
     private function writePage(string $path, string $body): void
