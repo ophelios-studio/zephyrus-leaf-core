@@ -63,6 +63,17 @@ class BuildCommand
 
         [$application, $router] = $this->app->buildForStaticGeneration();
 
+        // Detect whether the application registers its own `GET /` route (a landing page).
+        // When present, the static builder should render it normally instead of writing
+        // a docs redirect at the root.
+        $hasRootRoute = false;
+        foreach ($router->routes()->all() as $route) {
+            if ($route->method === 'GET' && $route->path === '/') {
+                $hasRootRoute = true;
+                break;
+            }
+        }
+
         $builder = new StaticSiteBuilder($application, $router);
         $builder->setOutputDirectory($outputDir);
         $builder->setPublicDirectory(ROOT_DIR . '/public');
@@ -99,8 +110,11 @@ class BuildCommand
         if (!empty($this->additionalPaths)) {
             $builder->addPaths($this->additionalPaths);
         }
+        // Exclude `/` from the builder only when the app has no landing route; otherwise
+        // the builder would skip the custom landing and we'd ship just the docs redirect.
+        $defaultExcludes = $hasRootRoute ? ['#^/search\.json$#'] : ['#^/search\.json$#', '#^/$#'];
         $builder->excludePatterns(array_merge(
-            ['#^/search\.json$#', '#^/$#'],
+            $defaultExcludes,
             $this->excludePatterns,
         ));
 
@@ -134,8 +148,9 @@ class BuildCommand
         file_put_contents($outputDir . '/search.json', json_encode($index, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
         echo "  -> " . count($index) . " pages indexed" . PHP_EOL;
 
-        // Single-locale root redirect to first doc page.
-        if (!$isMultiLocale) {
+        // Single-locale root redirect to first doc page (docs-only sites).
+        // Skipped when the app has a landing route; its rendered HTML already sits at /.
+        if (!$isMultiLocale && !$hasRootRoute) {
             $firstPageUrl = $this->app->getContentLoader()->getFirstPageUrl() . '/';
             $html = <<<HTML
             <!DOCTYPE html>
