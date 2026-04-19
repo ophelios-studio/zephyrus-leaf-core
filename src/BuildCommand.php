@@ -185,12 +185,64 @@ class BuildCommand
             echo "  -> robots.txt generated" . PHP_EOL;
         }
 
-        // Run project-specific post-build callbacks.
+        // Run config-declared post_build hooks (language-agnostic, run via
+        // subprocess with the project root as cwd). Happens before the PHP
+        // callbacks so hooks can prep artifacts that callbacks consume.
+        //
+        // Skipped when the process is driven by the leaf CLI binary (which
+        // sets LEAF_SKIP_HOOKS=1 so it can execute hooks itself *after*
+        // publishing dist/ back to the user's real project root).
+        if (getenv('LEAF_SKIP_HOOKS') !== '1'
+            && !$this->runPostBuildHooks($leafConfig->postBuild)) {
+            return 1;
+        }
+
+        // Run project-specific post-build callbacks (PHP-level, Composer tier).
         foreach ($this->postBuildCallbacks as $callback) {
             $callback($result, $outputDir);
         }
 
         echo PHP_EOL . "Build complete!" . PHP_EOL;
         return 0;
+    }
+
+    /**
+     * Execute each configured post_build hook sequentially. Returns false on
+     * the first failure (non-zero exit, missing executable, or proc_open
+     * error). Stdio is inherited so hook output shows up in the build log.
+     *
+     * @param list<list<string>> $hooks
+     */
+    private function runPostBuildHooks(array $hooks): bool
+    {
+        if ($hooks === []) {
+            return true;
+        }
+
+        echo PHP_EOL . "Running post_build hooks..." . PHP_EOL;
+        $projectRoot = defined('ROOT_DIR') ? ROOT_DIR : getcwd();
+
+        foreach ($hooks as $argv) {
+            $display = implode(' ', $argv);
+            echo "  -> {$display}" . PHP_EOL;
+
+            $descriptors = [
+                0 => STDIN,
+                1 => STDOUT,
+                2 => STDERR,
+            ];
+            $process = proc_open($argv, $descriptors, $pipes, $projectRoot);
+            if (!is_resource($process)) {
+                echo "  hook failed to start: {$display}" . PHP_EOL;
+                return false;
+            }
+            $status = proc_close($process);
+            if ($status !== 0) {
+                echo "  hook exited {$status}: {$display}" . PHP_EOL;
+                return false;
+            }
+        }
+
+        return true;
     }
 }

@@ -41,6 +41,17 @@ final class LeafConfig extends ConfigSection
     /** @var array<string, string> slug => label, ordered */
     public readonly array $sections;
 
+    /**
+     * Hooks run by BuildCommand after the pipeline succeeds. Each entry is
+     * either a string (executable path with no args) or an array of strings
+     * (executable path + arguments). Executed sequentially with cwd = project
+     * root, stdio inherited from the parent process. A failing hook aborts
+     * the chain and causes BuildCommand to return non-zero.
+     *
+     * @var list<string|list<string>>
+     */
+    public readonly array $postBuild;
+
     public static function fromArray(array $values): static
     {
         $instance = new static($values);
@@ -56,7 +67,52 @@ final class LeafConfig extends ConfigSection
         $instance->license = $instance->getString('license', 'MIT');
         $instance->productionUrl = $instance->getString('productionUrl', '');
         $instance->sections = $instance->parseSections();
+        $instance->postBuild = $instance->parsePostBuild();
         return $instance;
+    }
+
+    /**
+     * Parse the post_build config into normalized list-of-argv form.
+     *
+     * Accepted YAML shapes:
+     *
+     *     post_build:
+     *       - "./scripts/one.sh"
+     *       - ["./scripts/two.sh", "--arg"]
+     *
+     * Strings are wrapped into single-element argv arrays so downstream
+     * code only ever sees list<list<string>>.
+     *
+     * @return list<list<string>>
+     */
+    private function parsePostBuild(): array
+    {
+        $raw = $this->values['post_build'] ?? $this->values['postBuild'] ?? null;
+        if (!is_array($raw)) {
+            return [];
+        }
+        $hooks = [];
+        foreach ($raw as $entry) {
+            if (is_string($entry) && $entry !== '') {
+                $hooks[] = [$entry];
+                continue;
+            }
+            if (is_array($entry)) {
+                $argv = [];
+                foreach ($entry as $part) {
+                    if (is_scalar($part) || $part === null) {
+                        $s = (string) $part;
+                        if ($s !== '') {
+                            $argv[] = $s;
+                        }
+                    }
+                }
+                if ($argv !== []) {
+                    $hooks[] = $argv;
+                }
+            }
+        }
+        return $hooks;
     }
 
     /**
