@@ -37,6 +37,42 @@ final class PageDiscoveryTest extends TestCase
     }
 
     #[Test]
+    public function aPageNameOutsideTheRoutePatternIsRefusedWithItsCorrectedName(): void
+    {
+        mkdir($this->root . '/pages', 0o755);
+        touch($this->root . '/pages/About_Us.latte');
+
+        try {
+            PageDiscovery::discover($this->root);
+            self::fail('expected a refusal');
+        } catch (\InvalidArgumentException $e) {
+            self::assertSame(
+                'Page "About_Us.latte" cannot be served: page file names may only contain lowercase letters, '
+                . 'digits and hyphens, and must not start with a hyphen. Rename it to "about-us.latte".',
+                $e->getMessage(),
+            );
+        }
+    }
+
+    #[Test]
+    public function aNameWithNothingUsableLeftIsRefusedWithoutASuggestion(): void
+    {
+        mkdir($this->root . '/pages', 0o755);
+        touch($this->root . '/pages/---.latte');
+
+        try {
+            PageDiscovery::discover($this->root);
+            self::fail('expected a refusal');
+        } catch (\InvalidArgumentException $e) {
+            self::assertSame(
+                'Page "---.latte" cannot be served: page file names may only contain lowercase letters, '
+                . 'digits and hyphens, and must not start with a hyphen.',
+                $e->getMessage(),
+            );
+        }
+    }
+
+    #[Test]
     public function discoversLatteFilesAsUrlPaths(): void
     {
         mkdir($this->root . '/pages', 0o755);
