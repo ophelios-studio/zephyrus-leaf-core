@@ -68,13 +68,26 @@ final class SearchIndexBuilder
                 $index[] = [
                     'title' => $title,
                     'section' => $section,
-                    'url' => rtrim($this->baseUrl, '/') . "/{$section}/{$slug}",
+                    'url' => $this->urlPrefix() . "/{$section}/{$slug}",
                     'excerpt' => $excerpt,
                     'headings' => $headings,
                 ];
             }
         }
         return $index;
+    }
+
+    private function urlPrefix(): string
+    {
+        $prefix = rtrim($this->baseUrl, '/');
+        if ($this->currentLocale !== ''
+            && $this->defaultLocale !== ''
+            && $this->currentLocale !== $this->defaultLocale
+        ) {
+            $prefix .= '/' . $this->currentLocale;
+        }
+
+        return $prefix;
     }
 
     /**

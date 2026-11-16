@@ -82,6 +82,33 @@ MD);
     }
 
     #[Test]
+    public function aNonDefaultLocaleIndexPrefixesTheUrlsWithTheLocale(): void
+    {
+        $builder = new SearchIndexBuilder($this->fixtureDir, $this->parser, 'https://example.com/');
+        $builder->setLocale('fr', 'en', ['en', 'fr']);
+
+        $urls = array_column($builder->build(), 'url');
+        sort($urls);
+
+        $this->assertSame([
+            'https://example.com/fr/getting-started/installation',
+            'https://example.com/fr/getting-started/introduction',
+        ], $urls);
+    }
+
+    #[Test]
+    public function theDefaultLocaleIndexKeepsUnprefixedUrls(): void
+    {
+        $builder = new SearchIndexBuilder($this->fixtureDir, $this->parser);
+        $builder->setLocale('en', 'en', ['en', 'fr']);
+
+        $urls = array_column($builder->build(), 'url');
+        sort($urls);
+
+        $this->assertSame(['/getting-started/installation', '/getting-started/introduction'], $urls);
+    }
+
+    #[Test]
     public function excerptIsTruncated(): void
     {
         $longContent = "---\ntitle: Long\norder: 1\n---\n\n# Long\n\n" . str_repeat('Lorem ipsum dolor sit amet. ', 50);
