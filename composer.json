@@ -14,7 +14,7 @@
     "require": {
         "php": "^8.4",
         "zephyrus-framework/core": "@dev",
-        "league/commonmark": "^2.8",
+        "league/commonmark": "^2.10.2",
         "league/config": "^1.2",
         "ext-intl": "*",
         "ext-mbstring": "*"
