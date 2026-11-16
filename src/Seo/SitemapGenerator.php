@@ -15,6 +15,12 @@ final class SitemapGenerator
         $this->baseUrl = rtrim($baseUrl, '/');
     }
 
+    /** Absolute URL of the generated sitemap.xml, without a doubled slash. */
+    public function sitemapUrl(): string
+    {
+        return $this->baseUrl . '/sitemap.xml';
+    }
+
     /**
      * @param list<string> $pages Relative paths (e.g. ["/", "/blog", "/blog/my-post"])
      */

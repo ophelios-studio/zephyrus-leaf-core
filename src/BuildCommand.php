@@ -204,7 +204,7 @@ class BuildCommand
             echo "  -> sitemap.xml generated" . PHP_EOL;
 
             $robotsGenerator = new RobotsGenerator($outputDir);
-            $robotsGenerator->generate($productionUrl . '/sitemap.xml');
+            $robotsGenerator->generate($sitemapGenerator->sitemapUrl());
             echo "  -> robots.txt generated" . PHP_EOL;
         }
 
