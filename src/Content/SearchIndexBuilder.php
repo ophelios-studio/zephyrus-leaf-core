@@ -54,7 +54,7 @@ final class SearchIndexBuilder
                     continue;
                 }
                 $parsed = $this->parser->parse($content);
-                $title = $parsed->meta('title', ucwords(str_replace('-', ' ', $slug)));
+                $title = $parsed->meta('title', SlugTitle::fromSlug($slug));
 
                 $plaintext = strip_tags($parsed->html);
                 $plaintext = preg_replace('/\s+/', ' ', trim($plaintext));

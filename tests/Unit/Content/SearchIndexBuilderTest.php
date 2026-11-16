@@ -160,6 +160,16 @@ MD);
         rmdir($emptyDir);
     }
 
+    #[Test]
+    public function aTitleDerivedFromAnUnderscoredFileNameReadsUnderscoresAsSpaces(): void
+    {
+        file_put_contents($this->fixtureDir . '/getting-started/second_note.md', 'No front matter.');
+
+        $index = (new SearchIndexBuilder($this->fixtureDir, $this->parser))->build();
+
+        $this->assertContains('Second Note', array_column($index, 'title'));
+    }
+
     private function removeDirectory(string $dir): void
     {
         if (!is_dir($dir)) {
