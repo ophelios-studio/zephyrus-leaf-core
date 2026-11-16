@@ -283,6 +283,45 @@ MD);
         $this->assertSame('First Page', $section[0]['items'][0]['title']);
     }
 
+    #[Test]
+    public function anUnderscoredSectionFolderKeepsItsConfiguredLabelAndPosition(): void
+    {
+        mkdir($this->fixtureDir . '/my_notes', 0755, true);
+        file_put_contents($this->fixtureDir . '/my_notes/first.md', "---\ntitle: First\n---\n\nBody.");
+        $config = LeafConfig::fromArray([
+            'sections' => [
+                'my_notes' => 'Scratch pad',
+                'guides' => 'Guides',
+            ],
+        ]);
+
+        $sidebar = (new ContentLoader($this->fixtureDir, $this->parser, $config))->getSidebar();
+
+        $this->assertSame(['Scratch pad', 'Guides', 'Getting Started'], array_column($sidebar, 'title'));
+        $this->assertSame('/my_notes/first', $sidebar[0]['items'][0]['url']);
+    }
+
+    #[Test]
+    public function aHyphenatedSectionFolderStillMatchesItsConfiguredKey(): void
+    {
+        $config = LeafConfig::fromArray(['sections' => ['guides' => 'Guides', 'getting-started' => 'Start here']]);
+
+        $sidebar = (new ContentLoader($this->fixtureDir, $this->parser, $config))->getSidebar();
+
+        $this->assertSame(['Guides', 'Start here'], array_column($sidebar, 'title'));
+    }
+
+    #[Test]
+    public function aPageTitleDerivedFromAnUnderscoredFileNameReadsUnderscoresAsSpaces(): void
+    {
+        file_put_contents($this->fixtureDir . '/guides/second_note.md', "No front matter.");
+
+        $sidebar = (new ContentLoader($this->fixtureDir, $this->parser, LeafConfig::fromArray([])))->getSidebar();
+        $guides = array_values(array_filter($sidebar, fn (array $s) => $s['title'] === 'Guides'))[0];
+
+        $this->assertContains('Second Note', array_column($guides['items'], 'title'));
+    }
+
     private function removeDirectory(string $dir): void
     {
         if (!is_dir($dir)) {

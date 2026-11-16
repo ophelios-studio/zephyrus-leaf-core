@@ -201,9 +201,21 @@ final class ContentLoader
         $configSections = $this->config->sections;
 
         // Declared sections come first, in their configured order; the rest follow alphabetically.
-        $undeclared = array_values(array_diff(array_keys($sectionFiles), array_keys($configSections)));
+        $keyByFolder = [];
+        foreach (array_keys($sectionFiles) as $folder) {
+            $keyByFolder[(string) $folder] = LeafConfig::sectionKey((string) $folder);
+        }
+        $orderedSections = [];
+        foreach (array_keys($configSections) as $key) {
+            foreach ($keyByFolder as $folder => $folderKey) {
+                if ($folderKey === (string) $key) {
+                    $orderedSections[] = $folder;
+                }
+            }
+        }
+        $undeclared = array_values(array_diff(array_keys($keyByFolder), $orderedSections));
         sort($undeclared);
-        $orderedSections = [...array_map('strval', array_keys($configSections)), ...$undeclared];
+        $orderedSections = [...$orderedSections, ...array_map('strval', $undeclared)];
 
         foreach ($orderedSections as $section) {
             if (!isset($sectionFiles[$section])) {
@@ -215,14 +227,14 @@ final class ContentLoader
                 $pages[] = [
                     'section' => $section,
                     'slug' => $slug,
-                    'title' => $frontMatter['title'] ?? $this->slugToTitle($slug),
+                    'title' => $frontMatter['title'] ?? SlugTitle::fromSlug($slug),
                     'order' => $frontMatter['order'] ?? 99,
                     'url' => $this->baseUrl() . "/{$section}/{$slug}",
                 ];
             }
             usort($pages, fn (array $a, array $b) => $a['order'] <=> $b['order']);
 
-            $sectionLabel = $configSections[$section] ?? $this->slugToTitle($section);
+            $sectionLabel = $configSections[$keyByFolder[$section]] ?? SlugTitle::fromSlug($section);
             $sidebarItems = array_map(fn (array $page) => [
                 'title' => $page['title'],
                 'url' => $page['url'],
@@ -309,10 +321,5 @@ final class ContentLoader
     private function localeDirNames(): array
     {
         return $this->supportedLocales;
-    }
-
-    private function slugToTitle(string $slug): string
-    {
-        return ucwords(str_replace(['-', '_'], ' ', $slug));
     }
 }

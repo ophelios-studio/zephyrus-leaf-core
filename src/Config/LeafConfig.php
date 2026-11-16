@@ -38,7 +38,7 @@ final class LeafConfig extends ConfigSection
     public readonly string $license;
     public readonly string $productionUrl;
 
-    /** @var array<string, string> slug => label, ordered */
+    /** @var array<string, string> normalized key => label, ordered */
     public readonly array $sections;
 
     /**
@@ -116,6 +116,15 @@ final class LeafConfig extends ConfigSection
     }
 
     /**
+     * The key under which a content folder name appears in $sections, after
+     * the same key normalization the config loader applies.
+     */
+    public static function sectionKey(string $folder): string
+    {
+        return (string) array_key_first(static::fromArray(['sections' => [$folder => '']])->sections);
+    }
+
+    /**
      * Parse the sections config, preserving YAML insertion order.
      *
      * @return array<string, string>
@@ -127,10 +136,6 @@ final class LeafConfig extends ConfigSection
             return [];
         }
 
-        // The sections may come through as camelCase-normalized keys due to
-        // ConfigSection::normalizeKeys. Since section slugs use hyphens
-        // (e.g. "getting-started"), we need the raw values. Access the raw
-        // config values directly.
         $rawValues = $this->values['sections'] ?? $raw;
         if (!is_array($rawValues)) {
             return [];
