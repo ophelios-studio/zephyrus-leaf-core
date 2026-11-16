@@ -1,0 +1,247 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Anonymous function has an unused use \$scan\.$#'
+			identifier: closure.unusedUse
+			count: 1
+			path: src/BuildCommand.php
+
+		-
+			message: '#^Constant ROOT_DIR not found\.$#'
+			identifier: constant.notFound
+			count: 3
+			path: src/BuildCommand.php
+
+		-
+			message: '#^Parameter \#1 \$hooks of method Leaf\\BuildCommand\:\:runPostBuildHooks\(\) expects list\<list\<string\>\>, list\<list\<string\>\|string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/BuildCommand.php
+
+		-
+			message: '#^Parameter \#1 \$locales of method Leaf\\StaticSiteBuilder\:\:setLocales\(\) expects list\<string\>, non\-empty\-array\<string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/BuildCommand.php
+
+		-
+			message: '#^Parameter \#2 \$supportedLocales of method Leaf\\BuildCommand\:\:discoverContentPathsByLocale\(\) expects list\<string\>, non\-empty\-array\<string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/BuildCommand.php
+
+		-
+			message: '#^Parameter \#3 \$supportedLocales of method Leaf\\Content\\SearchIndexBuilder\:\:setLocale\(\) expects list\<string\>, non\-empty\-array\<string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/BuildCommand.php
+
+		-
+			message: '#^Class Leaf\\Config\\LeafConfig has an uninitialized readonly property \$author\. Assign it in the constructor\.$#'
+			identifier: property.uninitializedReadonly
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Class Leaf\\Config\\LeafConfig has an uninitialized readonly property \$authorUrl\. Assign it in the constructor\.$#'
+			identifier: property.uninitializedReadonly
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Class Leaf\\Config\\LeafConfig has an uninitialized readonly property \$baseUrl\. Assign it in the constructor\.$#'
+			identifier: property.uninitializedReadonly
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Class Leaf\\Config\\LeafConfig has an uninitialized readonly property \$contentPath\. Assign it in the constructor\.$#'
+			identifier: property.uninitializedReadonly
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Class Leaf\\Config\\LeafConfig has an uninitialized readonly property \$description\. Assign it in the constructor\.$#'
+			identifier: property.uninitializedReadonly
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Class Leaf\\Config\\LeafConfig has an uninitialized readonly property \$githubUrl\. Assign it in the constructor\.$#'
+			identifier: property.uninitializedReadonly
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Class Leaf\\Config\\LeafConfig has an uninitialized readonly property \$license\. Assign it in the constructor\.$#'
+			identifier: property.uninitializedReadonly
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Class Leaf\\Config\\LeafConfig has an uninitialized readonly property \$name\. Assign it in the constructor\.$#'
+			identifier: property.uninitializedReadonly
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Class Leaf\\Config\\LeafConfig has an uninitialized readonly property \$outputPath\. Assign it in the constructor\.$#'
+			identifier: property.uninitializedReadonly
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Class Leaf\\Config\\LeafConfig has an uninitialized readonly property \$postBuild\. Assign it in the constructor\.$#'
+			identifier: property.uninitializedReadonly
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Class Leaf\\Config\\LeafConfig has an uninitialized readonly property \$productionUrl\. Assign it in the constructor\.$#'
+			identifier: property.uninitializedReadonly
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Class Leaf\\Config\\LeafConfig has an uninitialized readonly property \$sections\. Assign it in the constructor\.$#'
+			identifier: property.uninitializedReadonly
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Class Leaf\\Config\\LeafConfig has an uninitialized readonly property \$version\. Assign it in the constructor\.$#'
+			identifier: property.uninitializedReadonly
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Readonly property Leaf\\Config\\LeafConfig\:\:\$author is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyAssignNotInConstructor
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Readonly property Leaf\\Config\\LeafConfig\:\:\$authorUrl is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyAssignNotInConstructor
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Readonly property Leaf\\Config\\LeafConfig\:\:\$baseUrl is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyAssignNotInConstructor
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Readonly property Leaf\\Config\\LeafConfig\:\:\$contentPath is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyAssignNotInConstructor
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Readonly property Leaf\\Config\\LeafConfig\:\:\$description is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyAssignNotInConstructor
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Readonly property Leaf\\Config\\LeafConfig\:\:\$githubUrl is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyAssignNotInConstructor
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Readonly property Leaf\\Config\\LeafConfig\:\:\$license is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyAssignNotInConstructor
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Readonly property Leaf\\Config\\LeafConfig\:\:\$name is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyAssignNotInConstructor
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Readonly property Leaf\\Config\\LeafConfig\:\:\$outputPath is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyAssignNotInConstructor
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Readonly property Leaf\\Config\\LeafConfig\:\:\$postBuild is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyAssignNotInConstructor
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Readonly property Leaf\\Config\\LeafConfig\:\:\$productionUrl is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyAssignNotInConstructor
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Readonly property Leaf\\Config\\LeafConfig\:\:\$sections is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyAssignNotInConstructor
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Readonly property Leaf\\Config\\LeafConfig\:\:\$version is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyAssignNotInConstructor
+			count: 1
+			path: src/Config/LeafConfig.php
+
+		-
+			message: '#^Parameter \#1 \$markdown of method Leaf\\Content\\MarkdownParser\:\:extractFrontMatter\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Content/ContentLoader.php
+
+		-
+			message: '#^Method Leaf\\Content\\SearchIndexBuilder\:\:build\(\) should return list\<array\{title\: string, section\: string, url\: string, excerpt\: string, headings\: list\<string\>\}\> but returns list\<array\{title\: mixed, section\: string, url\: non\-falsy\-string, excerpt\: string\|null, headings\: list\<string\>\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Content/SearchIndexBuilder.php
+
+		-
+			message: '#^Parameter \#1 \$string of function mb_strlen expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Content/SearchIndexBuilder.php
+
+		-
+			message: '#^Parameter \#1 \$string of function mb_substr expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Content/SearchIndexBuilder.php
+
+		-
+			message: '#^Parameter \#1 \$string of function urldecode expects string, string\|false\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/DevRouter.php
+
+		-
+			message: '#^Parameter \#3 \$supportedLocales of class Leaf\\Localization\\TranslationLatteExtension constructor expects list\<string\>, array\<string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Kernel.php
+
+		-
+			message: '#^Property Leaf\\Kernel\:\:\$renderEngine \(Zephyrus\\Rendering\\LatteEngine\) does not accept Zephyrus\\Rendering\\RenderEngine\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/Kernel.php
+
+		-
+			message: '#^Variable \$leafConfig on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: src/Kernel.php
+
+		-
+			message: '#^Method Leaf\\StaticSiteBuilder\:\:jsEscape\(\) should return string but returns string\|false\.$#'
+			identifier: return.type
+			count: 1
+			path: src/StaticSiteBuilder.php

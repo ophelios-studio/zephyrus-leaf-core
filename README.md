@@ -177,6 +177,7 @@ The default locale builds to the site root (`/`), other locales build to `/{loca
 
 ```bash
 composer test
+composer analyse
 ```
 
 ## License
