@@ -254,6 +254,35 @@ MD);
         $this->assertContains('Guides', $titles);
     }
 
+    #[Test]
+    public function anUndeclaredFolderFollowsTheDeclaredSectionsAlphabetically(): void
+    {
+        mkdir($this->fixtureDir . '/zeta', 0755, true);
+        mkdir($this->fixtureDir . '/alpha', 0755, true);
+        file_put_contents($this->fixtureDir . '/zeta/page.md', "# Zeta\n");
+        file_put_contents($this->fixtureDir . '/alpha/page.md', "# Alpha\n");
+        $config = LeafConfig::fromArray([
+            'sections' => ['guides' => 'Guides', 'getting-started' => 'Getting Started'],
+        ]);
+
+        $sidebar = (new ContentLoader($this->fixtureDir, $this->parser, $config))->getSidebar();
+
+        $this->assertSame(['Guides', 'Getting Started', 'Alpha', 'Zeta'], array_column($sidebar, 'title'));
+    }
+
+    #[Test]
+    public function anUnderscoreInASectionFolderReadsAsASpaceInItsTitle(): void
+    {
+        mkdir($this->fixtureDir . '/my_section', 0755, true);
+        file_put_contents($this->fixtureDir . '/my_section/first_page.md', "# Body\n");
+
+        $sidebar = (new ContentLoader($this->fixtureDir, $this->parser, LeafConfig::fromArray([])))->getSidebar();
+        $section = array_values(array_filter($sidebar, fn (array $s) => $s['items'][0]['section'] === 'my_section'));
+
+        $this->assertSame('My Section', $section[0]['title']);
+        $this->assertSame('First Page', $section[0]['items'][0]['title']);
+    }
+
     private function removeDirectory(string $dir): void
     {
         if (!is_dir($dir)) {

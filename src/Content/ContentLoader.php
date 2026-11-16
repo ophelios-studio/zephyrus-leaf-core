@@ -200,13 +200,10 @@ final class ContentLoader
         $sectionFiles = $this->collectSectionFiles();
         $configSections = $this->config->sections;
 
-        // Honor configured section order when present; otherwise alphabetical.
-        if ($configSections !== []) {
-            $orderedSections = array_keys($configSections);
-        } else {
-            $orderedSections = array_keys($sectionFiles);
-            sort($orderedSections);
-        }
+        // Declared sections come first, in their configured order; the rest follow alphabetically.
+        $undeclared = array_values(array_diff(array_keys($sectionFiles), array_keys($configSections)));
+        sort($undeclared);
+        $orderedSections = [...array_map('strval', array_keys($configSections)), ...$undeclared];
 
         foreach ($orderedSections as $section) {
             if (!isset($sectionFiles[$section])) {
@@ -316,6 +313,6 @@ final class ContentLoader
 
     private function slugToTitle(string $slug): string
     {
-        return ucwords(str_replace('-', ' ', $slug));
+        return ucwords(str_replace(['-', '_'], ' ', $slug));
     }
 }
