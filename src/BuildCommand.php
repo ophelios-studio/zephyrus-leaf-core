@@ -197,7 +197,7 @@ class BuildCommand
         if ($productionUrl !== '') {
             $sitemapGenerator = new SitemapGenerator($productionUrl, $outputDir);
             if ($isMultiLocale) {
-                $sitemapGenerator->generateMultiLocale($result->builtPages, $supportedLocales, $localizationConfig->locale);
+                $sitemapGenerator->generateFromLocalePages($result->builtPagesByLocale, $localizationConfig->locale);
             } else {
                 $sitemapGenerator->generate($result->builtPages);
             }

@@ -11,7 +11,8 @@ final readonly class StaticBuildResult
 {
     /**
      * @param list<string> $errors
-     * @param list<string> $builtPages Locale-agnostic paths that were successfully built
+     * @param list<string> $builtPages Locale-agnostic paths that were successfully built, in any locale
+     * @param array<string, list<string>> $builtPagesByLocale Locale code => paths built in that locale (multi-locale builds only)
      */
     public function __construct(
         public int $pagesBuilt,
@@ -20,6 +21,7 @@ final readonly class StaticBuildResult
         public array $errors,
         public string $outputDirectory,
         public array $builtPages = [],
+        public array $builtPagesByLocale = [],
     ) {
     }
 

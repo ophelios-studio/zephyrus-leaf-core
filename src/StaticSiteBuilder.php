@@ -226,7 +226,7 @@ final class StaticSiteBuilder
         $totalPages = 0;
         $totalPaths = 0;
         $allErrors = [];
-        $builtPages = [];
+        $builtPagesByLocale = [];
 
         foreach ($this->locales as $locale) {
             if ($this->translationExtension !== null) {
@@ -247,9 +247,7 @@ final class StaticSiteBuilder
 
             $totalPages += $result->pagesBuilt;
             $totalPaths += $result->totalPaths;
-            if (empty($builtPages)) {
-                $builtPages = $result->builtPages;
-            }
+            $builtPagesByLocale[$locale] = $result->builtPages;
 
             foreach ($result->errors as $error) {
                 $allErrors[] = "[{$locale}] {$error}";
@@ -268,10 +266,10 @@ final class StaticSiteBuilder
             elapsedMs: round($elapsed, 2),
             errors: $allErrors,
             outputDirectory: $this->outputDirectory,
-            builtPages: $builtPages,
+            builtPages: array_values(array_unique(array_merge(...array_values($builtPagesByLocale)))),
+            builtPagesByLocale: $builtPagesByLocale,
         );
     }
-
 
     /**
      * @return list<string>

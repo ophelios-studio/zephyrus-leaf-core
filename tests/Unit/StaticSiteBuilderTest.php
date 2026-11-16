@@ -69,6 +69,23 @@ final class StaticSiteBuilderTest extends TestCase
         self::assertFileDoesNotExist($this->outputDir . '/fr/guide/index.html');
     }
 
+    #[Test]
+    public function theBuildResultListsTheBuiltPagesOfEachLocale(): void
+    {
+        $builder = $this->builder();
+        $builder->setLocales(['en', 'fr'], 'en');
+        $builder->setLocaleAdditionalPaths([
+            'en' => ['/guide'],
+            'fr' => ['/fr-only'],
+        ]);
+
+        $result = $builder->build();
+
+        self::assertSame(['/', '/guide'], $result->builtPagesByLocale['en']);
+        self::assertSame(['/', '/fr-only'], $result->builtPagesByLocale['fr']);
+        self::assertSame(['/', '/guide', '/fr-only'], $result->builtPages);
+    }
+
     private function builder(): StaticSiteBuilder
     {
         $router = (new Router())->get('/', PageController::class . '@home')
