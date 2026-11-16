@@ -9,12 +9,6 @@
             "email": "david.tucker@ophelios.com"
         }
     ],
-    "repositories": [
-        {
-            "type": "path",
-            "url": "../zephyrus2"
-        }
-    ],
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {

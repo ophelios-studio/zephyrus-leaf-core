@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ce69788e13a7bac34782f0220f380cb7",
+    "content-hash": "1ff8e46f858f79e9e00559fbf3dddf17",
     "packages": [
         {
             "name": "dflydev/dot-access-data",
@@ -1108,16 +1108,16 @@
         },
         {
             "name": "symfony/yaml",
-            "version": "v7.4.8",
+            "version": "v7.4.23",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/yaml.git",
-                "reference": "c58fdf7b3d6c2995368264c49e4e8b05bcff2883"
+                "reference": "1e601207ffe627a2e621faa9d661f1d32dcf1cec"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/yaml/zipball/c58fdf7b3d6c2995368264c49e4e8b05bcff2883",
-                "reference": "c58fdf7b3d6c2995368264c49e4e8b05bcff2883",
+                "url": "https://api.github.com/repos/symfony/yaml/zipball/1e601207ffe627a2e621faa9d661f1d32dcf1cec",
+                "reference": "1e601207ffe627a2e621faa9d661f1d32dcf1cec",
                 "shasum": ""
             },
             "require": {
@@ -1160,7 +1160,7 @@
             "description": "Loads and dumps YAML files",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/yaml/tree/v7.4.8"
+                "source": "https://github.com/symfony/yaml/tree/v7.4.23"
             },
             "funding": [
                 {
@@ -1180,7 +1180,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-03-24T13:12:05+00:00"
+            "time": "2026-11-04T08:27:22+00:00",
+            "published-time": "2026-11-04T11:28:41+00:00"
         },
         {
             "name": "tracy/tracy",
@@ -1348,13 +1349,20 @@
         },
         {
             "name": "zephyrus-framework/core",
-            "version": "dev-dev",
+            "version": "v0.16.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ophelios-studio/zephyrus-core.git",
+                "reference": "97dc8d57e20ba945fefd2563302fa6ff782f0d20"
+            },
             "dist": {
-                "type": "path",
-                "url": "../zephyrus2",
-                "reference": "970b25c1e8137df03836d606cac64692fe4611df"
+                "type": "zip",
+                "url": "https://api.github.com/repos/ophelios-studio/zephyrus-core/zipball/97dc8d57e20ba945fefd2563302fa6ff782f0d20",
+                "reference": "97dc8d57e20ba945fefd2563302fa6ff782f0d20",
+                "shasum": ""
             },
             "require": {
+                "ext-fileinfo": "*",
                 "ext-intl": "*",
                 "ext-mbstring": "*",
                 "ext-pdo": "*",
@@ -1362,42 +1370,40 @@
                 "latte/latte": "^3.0",
                 "php": "^8.4",
                 "phpmailer/phpmailer": "^6.9",
-                "symfony/yaml": "^7.0",
+                "symfony/yaml": "^7.4.23",
                 "tracy/tracy": "^2.10",
                 "vlucas/phpdotenv": "^5.6"
             },
             "require-dev": {
+                "phpstan/phpstan": "^2.2",
                 "phpunit/phpunit": "^11.0"
             },
             "suggest": {
                 "ext-apcu": "For locale catalog caching via CachedLocaleLoader"
             },
+            "bin": [
+                "bin/zephyrus"
+            ],
             "type": "library",
             "autoload": {
-                "psr-4": {
-                    "Zephyrus\\": "src/Zephyrus/"
-                },
                 "files": [
                     "src/Zephyrus/functions.php"
-                ]
-            },
-            "autoload-dev": {
+                ],
                 "psr-4": {
-                    "Zephyrus\\Tests\\": "tests/"
+                    "Zephyrus\\": "src/Zephyrus/"
                 }
             },
-            "scripts": {
-                "test": [
-                    "phpunit"
-                ]
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
-            "description": "Cohesive PHP 8.4+ framework — attribute routing, immutable HTTP, typed config, and security middleware out of the box.",
-            "transport-options": {
-                "relative": true
-            }
+            "description": "Cohesive PHP 8.4+ framework: attribute routing, immutable HTTP, typed config, and security middleware out of the box.",
+            "support": {
+                "issues": "https://github.com/ophelios-studio/zephyrus-core/issues",
+                "source": "https://github.com/ophelios-studio/zephyrus-core/tree/v0.16.0"
+            },
+            "time": "2026-11-14T03:01:57+00:00",
+            "published-time": "2026-11-14T03:06:15+00:00"
         }
     ],
     "packages-dev": [
@@ -3283,5 +3289,5 @@
         "ext-mbstring": "*"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.11.0"
 }
