@@ -52,8 +52,8 @@ final class StaticSiteBuilder
     /** @var array<string, list<string>> locale code => paths to build for that locale */
     private array $localeAdditionalPaths = [];
 
-    /** @var list<string>|null active override of $additionalPaths during multi-locale iteration */
-    private ?array $activePathsOverride = null;
+    /** @var list<string> paths of the locale being built, added to $additionalPaths */
+    private array $activeLocalePaths = [];
 
     public function __construct(
         private readonly Application $application,
@@ -133,9 +133,9 @@ final class StaticSiteBuilder
     }
 
     /**
-     * For multi-locale sites: the exact set of content paths to render per
-     * locale. Each locale only builds its own set (plus auto-discovered
-     * routes), so a French-only page doesn't 404 the English build.
+     * For multi-locale sites: the content paths to render per locale. Each
+     * locale builds its own set, the paths added with addPaths() and the
+     * auto-discovered routes, so a French-only page doesn't 404 the English build.
      *
      * @param array<string, list<string>> $byLocale
      */
@@ -236,19 +236,14 @@ final class StaticSiteBuilder
                 $this->contentLoader->setLocale($locale, $this->defaultLocale, $this->locales);
             }
 
-            // Scope this iteration's additional paths to the locale's own set
-            // so a locale-only page doesn't 404 the other locales' builds.
-            if (isset($this->localeAdditionalPaths[$locale])) {
-                $this->activePathsOverride = $this->localeAdditionalPaths[$locale];
-            } else {
-                $this->activePathsOverride = null;
-            }
+            // A locale-only page must not 404 the other locales' builds.
+            $this->activeLocalePaths = $this->localeAdditionalPaths[$locale] ?? [];
 
             $localeOutputDir = ($locale === $this->defaultLocale)
                 ? $this->outputDirectory
                 : $this->outputDirectory . '/' . $locale;
             $result = $this->buildSingleLocale($localeOutputDir);
-            $this->activePathsOverride = null;
+            $this->activeLocalePaths = [];
 
             $totalPages += $result->pagesBuilt;
             $totalPaths += $result->totalPaths;
@@ -295,8 +290,7 @@ final class StaticSiteBuilder
             $paths[] = $route->path;
         }
 
-        $additional = $this->activePathsOverride ?? $this->additionalPaths;
-        $paths = array_merge($paths, $additional);
+        $paths = array_merge($paths, $this->additionalPaths, $this->activeLocalePaths);
         $paths = array_values(array_unique($paths));
 
         if ($this->excludePatterns !== []) {
