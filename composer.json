@@ -9,11 +9,9 @@
             "email": "david.tucker@ophelios.com"
         }
     ],
-    "minimum-stability": "dev",
-    "prefer-stable": true,
     "require": {
         "php": "^8.4",
-        "zephyrus-framework/core": "@dev",
+        "zephyrus-framework/core": "^3.17",
         "league/commonmark": "^2.10.2",
         "league/config": "^1.2",
         "ext-intl": "*",
