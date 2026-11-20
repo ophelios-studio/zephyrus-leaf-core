@@ -71,7 +71,7 @@ final class ContentLoader
     }
 
     /**
-     * @return list<array{title: string, items: list<array{title: string, url: string}>}>
+     * @return list<array{title: string, items: list<array{title: string, url: string, section: string, slug: string}>}>
      */
     public function getSidebar(): array
     {
@@ -95,7 +95,7 @@ final class ContentLoader
     }
 
     /**
-     * @return array{title: string, url: string}|null
+     * @return array{section: string, slug: string, title: string, url: string}|null
      */
     public function getPreviousPage(string $section, string $slug): ?array
     {
@@ -104,10 +104,7 @@ final class ContentLoader
 
         foreach ($this->flatPages as $i => $page) {
             if ($page['url'] === $url && $i > 0) {
-                return [
-                    'title' => $this->flatPages[$i - 1]['title'],
-                    'url' => $this->flatPages[$i - 1]['url'],
-                ];
+                return $this->flatPages[$i - 1];
             }
         }
 
@@ -115,7 +112,7 @@ final class ContentLoader
     }
 
     /**
-     * @return array{title: string, url: string}|null
+     * @return array{section: string, slug: string, title: string, url: string}|null
      */
     public function getNextPage(string $section, string $slug): ?array
     {
@@ -124,10 +121,7 @@ final class ContentLoader
 
         foreach ($this->flatPages as $i => $page) {
             if ($page['url'] === $url && isset($this->flatPages[$i + 1])) {
-                return [
-                    'title' => $this->flatPages[$i + 1]['title'],
-                    'url' => $this->flatPages[$i + 1]['url'],
-                ];
+                return $this->flatPages[$i + 1];
             }
         }
 

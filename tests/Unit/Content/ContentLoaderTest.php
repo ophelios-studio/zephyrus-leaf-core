@@ -175,6 +175,34 @@ MD);
     }
 
     #[Test]
+    public function getPreviousPageNamesTheSectionAndSlugOfThePageItPointsAt(): void
+    {
+        $config = LeafConfig::fromArray([
+            'sections' => ['getting-started' => 'Getting Started', 'guides' => 'Guides'],
+        ]);
+
+        $loader = new ContentLoader($this->fixtureDir, $this->parser, $config);
+
+        $prev = $loader->getPreviousPage('guides', 'deployment');
+        $this->assertNotNull($prev);
+        $this->assertSame(['getting-started', 'installation'], [$prev['section'], $prev['slug']]);
+    }
+
+    #[Test]
+    public function getNextPageNamesTheSectionAndSlugOfThePageItPointsAt(): void
+    {
+        $config = LeafConfig::fromArray([
+            'sections' => ['getting-started' => 'Getting Started', 'guides' => 'Guides'],
+        ]);
+
+        $loader = new ContentLoader($this->fixtureDir, $this->parser, $config);
+
+        $next = $loader->getNextPage('getting-started', 'installation');
+        $this->assertNotNull($next);
+        $this->assertSame(['guides', 'deployment'], [$next['section'], $next['slug']]);
+    }
+
+    #[Test]
     public function getNextPageReturnsNullForLastPage(): void
     {
         $config = LeafConfig::fromArray([
