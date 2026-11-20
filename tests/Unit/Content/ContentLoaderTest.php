@@ -360,6 +360,29 @@ MD);
         $this->assertContains('1', array_column($pages, 'slug'));
     }
 
+    #[Test]
+    public function aDeclaredNumericSectionFolderKeepsAStringSectionEverywhere(): void
+    {
+        mkdir($this->fixtureDir . '/2024');
+        file_put_contents($this->fixtureDir . '/2024/1.md', "---\norder: 1\n---\nOne.");
+        file_put_contents($this->fixtureDir . '/2024/2.md', "---\norder: 2\n---\nTwo.");
+        $loader = new ContentLoader(
+            $this->fixtureDir,
+            $this->parser,
+            LeafConfig::fromArray(['sections' => ['2024' => 'Archive']]),
+        );
+
+        $archive = $loader->getSidebar()[0];
+        $sections = array_unique(array_column($loader->getAllPages(), 'section'));
+
+        $this->assertSame('Archive', $archive['title']);
+        $this->assertSame('2024', $archive['items'][0]['section']);
+        $this->assertContains('2024', $sections);
+        $this->assertNotContains(2024, $sections);
+        $this->assertSame('2024', $loader->getNextPage('2024', '1')['section']);
+        $this->assertSame('2024', $loader->getPreviousPage('2024', '2')['section']);
+    }
+
     private function removeDirectory(string $dir): void
     {
         if (!is_dir($dir)) {

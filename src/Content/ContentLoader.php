@@ -71,6 +71,9 @@ final class ContentLoader
     }
 
     /**
+     * Each item's `url` is the base URL plus `/section/slug`, with no locale prefix: build a link from
+     * `section` and `slug` and add the locale prefix.
+     *
      * @return list<array{title: string, items: list<array{title: string, url: string, section: string, slug: string}>}>
      */
     public function getSidebar(): array
@@ -95,6 +98,9 @@ final class ContentLoader
     }
 
     /**
+     * The `url` is the base URL plus `/section/slug`, with no locale prefix: build a link from
+     * `section` and `slug` and add the locale prefix.
+     *
      * @return array{section: string, slug: string, title: string, url: string}|null
      */
     public function getPreviousPage(string $section, string $slug): ?array
@@ -112,6 +118,9 @@ final class ContentLoader
     }
 
     /**
+     * The `url` is the base URL plus `/section/slug`, with no locale prefix: build a link from
+     * `section` and `slug` and add the locale prefix.
+     *
      * @return array{section: string, slug: string, title: string, url: string}|null
      */
     public function getNextPage(string $section, string $slug): ?array
@@ -203,7 +212,7 @@ final class ContentLoader
         foreach (array_keys($configSections) as $key) {
             foreach ($keyByFolder as $folder => $folderKey) {
                 if ($folderKey === (string) $key) {
-                    $orderedSections[] = $folder;
+                    $orderedSections[] = (string) $folder;
                 }
             }
         }
