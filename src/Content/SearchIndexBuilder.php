@@ -48,7 +48,9 @@ final class SearchIndexBuilder
         }
 
         foreach ($this->collectSectionFiles() as $section => $slugs) {
+            $section = (string) $section;
             foreach ($slugs as $slug => $filePath) {
+                $slug = (string) $slug;
                 $content = file_get_contents($filePath);
                 if ($content === false) {
                     continue;

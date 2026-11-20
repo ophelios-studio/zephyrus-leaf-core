@@ -322,6 +322,16 @@ MD);
         $this->assertContains('Second Note', array_column($guides['items'], 'title'));
     }
 
+    #[Test]
+    public function aNumericFileNameStillGivesAStringSlug(): void
+    {
+        file_put_contents($this->fixtureDir . '/guides/1.md', "No front matter.");
+
+        $pages = (new ContentLoader($this->fixtureDir, $this->parser, LeafConfig::fromArray([])))->getAllPages();
+
+        $this->assertContains('1', array_column($pages, 'slug'));
+    }
+
     private function removeDirectory(string $dir): void
     {
         if (!is_dir($dir)) {

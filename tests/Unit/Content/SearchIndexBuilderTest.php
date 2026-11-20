@@ -170,6 +170,17 @@ MD);
         $this->assertContains('Second Note', array_column($index, 'title'));
     }
 
+    #[Test]
+    public function aNumericFolderAndFileNameAreIndexedAsStrings(): void
+    {
+        mkdir($this->fixtureDir . '/2024');
+        file_put_contents($this->fixtureDir . '/2024/1.md', 'No front matter.');
+
+        $index = (new SearchIndexBuilder($this->fixtureDir, $this->parser))->build();
+
+        $this->assertContains(['2024', '/2024/1'], array_map(fn (array $e) => [$e['section'], $e['url']], $index));
+    }
+
     private function removeDirectory(string $dir): void
     {
         if (!is_dir($dir)) {

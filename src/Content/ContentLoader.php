@@ -223,6 +223,7 @@ final class ContentLoader
             }
             $pages = [];
             foreach ($sectionFiles[$section] as $slug => $filePath) {
+                $slug = (string) $slug;
                 $frontMatter = $this->parser->extractFrontMatter(file_get_contents($filePath));
                 $pages[] = [
                     'section' => $section,
